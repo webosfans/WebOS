@@ -1,4 +1,6 @@
 @page "/login"
+@layout NotAuthorizedLayout
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <div class="background"></div>
 
@@ -14,9 +16,17 @@
             </div>
             <h2>WebOS <sup>&reg;</sup></h2>
             <div class="inputBx">
-                <input type="submit" value="Sign in with Microsoft">
-                <input type="submit" value="Sign in as Guest">
+                <input type="button" value="Sign in with Microsoft">
+                <input type="button" value="Sign in as Guest" @onclick="LoginAsGuest">
             </div>
         </div>
     </div>
 </div>
+
+@code
+{
+    private async Task LoginAsGuest()
+    {
+        await ((LocalAuthenticationStateProvider)AuthenticationStateProvider).LoginAsync();
+    }
+}
