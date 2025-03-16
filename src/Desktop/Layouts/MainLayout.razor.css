@@ -1,0 +1,14 @@
+.main-layout {
+    display: flex;
+    position: absolute;
+    position: absolute;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    top: 0px;
+    background-image: url(assets/img/wallpaper.jpg);
+    background-repeat: no-repeat;
+    background-size: cover;
+    z-index: 0;
+    display: flex;
+}
