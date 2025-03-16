@@ -1,3 +1,10 @@
 @page "/"
+@inject NavigationManager NavigationManager
 
-<h1>Welcome to WebOS!</h1>
+@code
+{
+    protected override void OnInitialized()
+    {
+        NavigationManager.NavigateTo("/login");
+    }
+}
