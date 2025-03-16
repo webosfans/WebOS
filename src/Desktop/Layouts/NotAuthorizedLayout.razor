@@ -1,0 +1,12 @@
+@using Desktop.Layouts.Redirections
+@inherits LayoutComponentBase
+@layout MainLayout
+
+<AuthorizeView>
+    <Authorized>
+        <RedirectToHome />
+    </Authorized>
+    <NotAuthorized>
+        @Body
+    </NotAuthorized>
+</AuthorizeView>

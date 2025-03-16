@@ -110,7 +110,7 @@
     outline: none;
 }
 
-.login .inputBx input[type="submit"] {
+.login .inputBx input {
     width: 100%;
     background: #0078ff;
     background: linear-gradient(45deg, #ff357a, #fff172);
@@ -136,7 +136,7 @@
     text-decoration: none;
 }
 
-.inputBx input[type="submit"]:hover {
+.inputBx input:hover {
     box-shadow: rgba(0, 0, 0, 0.4) 0px 2px 4px, rgba(0, 0, 0, 0.3) 0px 7px 13px -3px, rgba(0, 0, 0, 0.2) 0px -3px 0px inset;
 }
 
