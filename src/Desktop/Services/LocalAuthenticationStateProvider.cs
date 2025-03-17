@@ -12,12 +12,17 @@ public class LocalAuthenticationStateProvider : AuthenticationStateProvider
         return Task.FromResult(new AuthenticationState(user));
     }
 
-    public async Task LoginAsync()
+    public async Task AuthenticateUser(string userName)
     {
         var user = new ClaimsPrincipal(new ClaimsIdentity([
-            new Claim(ClaimTypes.Name, "Guest"),
+            new Claim(ClaimTypes.Name, userName),
         ], nameof(LocalAuthenticationStateProvider)));
         NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
         await Task.CompletedTask;
+    }
+
+    public async Task LoginAsync()
+    {
+        await AuthenticateUser("Guest");
     }
 }

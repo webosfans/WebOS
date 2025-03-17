@@ -1,0 +1,15 @@
+@page "/login/microsoft"
+@using Desktop.Pages.Login.Components
+@inject MicrosoftAuthenticationProvider MicrosoftAuthenticationProvider
+
+<LoginPanel AlwaysAnimation=true>
+    <div class="loader">Logging in...</div> 
+</LoginPanel>
+
+@code
+{
+    protected override async Task OnInitializedAsync()
+    {
+        await MicrosoftAuthenticationProvider.LoginAsync(Navigation.Uri);
+    }
+}

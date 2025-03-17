@@ -1,0 +1,27 @@
+<div class="background"></div>
+
+<div class="page">
+    <div class="@RingCssClass">
+        <i style="--clr:#00ff0a;"></i>
+        <i style="--clr:#ff0057;"></i>
+        <i style="--clr:#fffd44;"></i>
+        <div class="login">
+            <div class="logo">
+                <img class="shadow" src="/assets/img/logo.svg" />
+                <img src="/assets/img/logo.svg" />
+            </div>
+            @ChildContent
+        </div>
+    </div>
+</div>
+
+@code
+{
+    [Parameter]
+    public RenderFragment ChildContent { get; set; } = default!;
+
+    [Parameter]
+    public bool AlwaysAnimation { get; set; }
+
+    private string RingCssClass => AlwaysAnimation ? "ring animation" : "ring";
+}
