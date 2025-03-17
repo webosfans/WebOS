@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Primitives;
-using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text;
@@ -12,38 +11,40 @@ namespace Desktop.Services;
 
 public class MicrosoftAuthenticationProvider
 {
-    private string ClientId { get; init; }
-
-    private string CallbackUrl { get; init; }
-
-    private string CodeVerifier { get; init; }
-
-    private string CodeChallenge { get; init; }
-
-    private HttpClient HttpClient { get; init; }
-
-    private LocalAuthenticationStateProvider AuthenticationStateProvider { get; init; }
+    private readonly IHttpClientFactory m_httpClientFactory;
+    private readonly MicrosoftGraphApiOptions m_microsoftGraphApiOptions;
+    private readonly MicrosoftOAuthOptions m_microsoftOAuthOptions;
+    private readonly LocalAuthenticationStateProvider m_authenticationStateProvider;
+    private readonly HttpClient m_defaultHttpClient;
+    private readonly string m_codeVerifier;
+    private readonly string m_codeChallenge;
 
     public string LoginUrl =>
         new StringBuilder($"https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize")
-            .Append($"?client_id={ClientId}")
-            .Append($"&redirect_uri={CallbackUrl}")
-            .Append("&response_type=code")
+            .Append($"?client_id={m_microsoftOAuthOptions.ClientId}")
+            .Append($"&redirect_uri={m_microsoftOAuthOptions.CallbackUrl}")
+            .Append("&response_type=code+id_token")
             .Append("&response_mode=fragment")
-            .Append("&scope=files.readwrite+user.read")
+            .Append("&scope=files.readwrite+user.read+openid")
             .Append("&nonce=webos")
-            .Append($"&code_challenge={CodeChallenge}")
+            .Append($"&code_challenge={m_codeChallenge}")
             .Append("&code_challenge_method=S256")
             .ToString();
 
-    public MicrosoftAuthenticationProvider(string clientId, string callbackUrl, HttpClient httpClient, AuthenticationStateProvider authenticationStateProvider)
+    public MicrosoftAuthenticationProvider(
+        IHttpClientFactory httpClientFactory,
+        MicrosoftGraphApiOptions microsfotGraphApiOptions,
+        MicrosoftOAuthOptions microsoftOAuthOptions,
+        AuthenticationStateProvider authenticationStateProvider,
+        HttpClient defaultHttpClient)
     {
-        ClientId = clientId;
-        CallbackUrl = callbackUrl;
-        CodeVerifier = GenerateCodeVerifier();
-        CodeChallenge = GenerateCodeChallenge(CodeVerifier);
-        HttpClient = httpClient;
-        AuthenticationStateProvider = (LocalAuthenticationStateProvider)authenticationStateProvider;
+        m_httpClientFactory = httpClientFactory;
+        m_microsoftGraphApiOptions = microsfotGraphApiOptions;
+        m_microsoftOAuthOptions = microsoftOAuthOptions;
+        m_authenticationStateProvider = (LocalAuthenticationStateProvider)authenticationStateProvider;
+        m_defaultHttpClient = defaultHttpClient;
+        m_codeVerifier = GenerateCodeVerifier();
+        m_codeChallenge = GenerateCodeChallenge(m_codeVerifier);
     }
 
     public async Task LoginAsync(string callbackUrl)
@@ -56,16 +57,23 @@ public class MicrosoftAuthenticationProvider
         var code = GetValue(queries, "code");
         if (string.IsNullOrEmpty(code))
         {
-            throw new Exception($"Login failed (unknown code)");
+            throw new Exception($"Login failed (no code)");
+        }
+
+        // Get id_token.
+        var idToken = GetValue(queries, "id_token");
+        if (string.IsNullOrEmpty(idToken))
+        {
+            throw new Exception($"Login failed (no id_token)");
         }
 
         // Redeem token.
-        var response = await HttpClient.PostAsync("https://login.microsoftonline.com/consumers/oauth2/v2.0/token", new FormUrlEncodedContent([
-            new KeyValuePair<string, string>("client_id", ClientId),
+        var response = await m_defaultHttpClient.PostAsync("https://login.microsoftonline.com/consumers/oauth2/v2.0/token", new FormUrlEncodedContent([
+            new KeyValuePair<string, string>("client_id", m_microsoftOAuthOptions.ClientId),
             new KeyValuePair<string, string>("code", code),
-            new KeyValuePair<string, string>("redirect_uri", CallbackUrl),
+            new KeyValuePair<string, string>("redirect_uri", m_microsoftOAuthOptions.CallbackUrl),
             new KeyValuePair<string, string>("grant_type", "authorization_code"),
-            new KeyValuePair<string, string>("code_verifier", CodeVerifier),
+            new KeyValuePair<string, string>("code_verifier", m_codeVerifier),
         ]));
         response = response.EnsureSuccessStatusCode();
         var redeemResponse = await response.Content.ReadFromJsonAsync<RedeemTokenResponse>();
@@ -74,18 +82,19 @@ public class MicrosoftAuthenticationProvider
             throw new Exception($"Login failed (no token redeemed)");
         }
 
-        // Add token to http client.
-        HttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", redeemResponse.AccessToken);
+        // Update authentication token.
+        m_microsoftGraphApiOptions.BearerToken = redeemResponse.AccessToken;
+
+        // Get a new ms graph client
+        var graphClient = m_httpClientFactory.CreateClient("ms-graph-api");
 
         // Get user profile.
-        response = await HttpClient.GetAsync("https://graph.microsoft.com/v1.0/me");
-        response = response.EnsureSuccessStatusCode();
-        var userProfile = await response.Content.ReadFromJsonAsync<UserProfileResponse>();
+        var userProfile = await graphClient.GetFromJsonAsync<UserProfileResponse>("me");
         if (userProfile == null)
         {
             throw new Exception($"Login failed (get user profile failed)");
         }
-        await AuthenticationStateProvider.AuthenticateUser(userProfile.DisplayName);
+        await m_authenticationStateProvider.AuthenticateUser(userProfile.DisplayName);
     }
 
     private string? GetValue(IDictionary<string, StringValues> dict, string key)
