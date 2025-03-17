@@ -1,0 +1,25 @@
+@page "/login"
+@using Desktop.Pages.Login.Components
+@inject MicrosoftAuthenticationProvider MicrosoftAuthenticationProvider
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<LoginPanel>
+    <h2>WebOS <sup>&reg;</sup></h2>
+    <div class="inputBx">
+        <input type="button" value="Sign in with Microsoft" @onclick="LoginWithMicrosoft">
+        <input type="button" value="Sign in as Guest" @onclick="LoginAsGuest">
+    </div>
+</LoginPanel>
+
+@code
+{
+    private void LoginWithMicrosoft()
+    {
+        Navigation.NavigateTo(MicrosoftAuthenticationProvider.LoginUrl);
+    }
+
+    private async Task LoginAsGuest()
+    {
+        await ((LocalAuthenticationStateProvider)AuthenticationStateProvider).LoginAsync();
+    }
+}
