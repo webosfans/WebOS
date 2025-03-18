@@ -1,3 +1,4 @@
+using Desktop.DTOs;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Primitives;
@@ -14,7 +15,7 @@ public class MicrosoftAuthenticationProvider
     private readonly IHttpClientFactory m_httpClientFactory;
     private readonly MicrosoftGraphApiOptions m_microsoftGraphApiOptions;
     private readonly MicrosoftOAuthOptions m_microsoftOAuthOptions;
-    private readonly LocalAuthenticationStateProvider m_authenticationStateProvider;
+    private readonly UserManager m_userManager;
     private readonly HttpClient m_defaultHttpClient;
     private readonly string m_codeVerifier;
     private readonly string m_codeChallenge;
@@ -35,13 +36,13 @@ public class MicrosoftAuthenticationProvider
         IHttpClientFactory httpClientFactory,
         MicrosoftGraphApiOptions microsfotGraphApiOptions,
         MicrosoftOAuthOptions microsoftOAuthOptions,
-        AuthenticationStateProvider authenticationStateProvider,
+        UserManager userManager,
         HttpClient defaultHttpClient)
     {
         m_httpClientFactory = httpClientFactory;
         m_microsoftGraphApiOptions = microsfotGraphApiOptions;
         m_microsoftOAuthOptions = microsoftOAuthOptions;
-        m_authenticationStateProvider = (LocalAuthenticationStateProvider)authenticationStateProvider;
+        m_userManager = userManager;
         m_defaultHttpClient = defaultHttpClient;
         m_codeVerifier = GenerateCodeVerifier();
         m_codeChallenge = GenerateCodeChallenge(m_codeVerifier);
@@ -89,12 +90,17 @@ public class MicrosoftAuthenticationProvider
         var graphClient = m_httpClientFactory.CreateClient("ms-graph-api");
 
         // Get user profile.
-        var userProfile = await graphClient.GetFromJsonAsync<UserProfileResponse>("me");
-        if (userProfile == null)
+        var userProfileResponse = await graphClient.GetFromJsonAsync<UserProfileResponse>("me");
+        if (userProfileResponse == null)
         {
             throw new Exception($"Login failed (get user profile failed)");
         }
-        await m_authenticationStateProvider.AuthenticateUser(userProfile.DisplayName);
+
+        // Authenticate user.
+        await m_userManager.AuthenticateUser(new UserProfileDto("fake-id")
+        {
+            DisplayName = userProfileResponse.DisplayName,
+        });
     }
 
     private string? GetValue(IDictionary<string, StringValues> dict, string key)

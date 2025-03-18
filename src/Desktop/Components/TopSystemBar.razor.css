@@ -1,0 +1,38 @@
+.top-system-bar {
+    display: flex;
+    height: 1.8rem;
+    justify-content: space-between;
+    font-size: .85rem;
+    background-color: hsla(240,3%,11%,.3);
+}
+
+.top-system-bar div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+::deep svg, img {
+    width: 1.2rem;
+    height: 1.2rem;
+}
+
+::deep svg {
+    fill: #fff;
+}
+
+.system-menu-bar {
+    gap: .25rem;
+}
+
+.system-menu-bar > div {
+    height: 100%;
+    border-radius: .25rem;
+    font-weight: 500;
+    padding: 0 .7rem;
+    user-select: none;
+}
+
+.system-menu-bar > div:hover {
+    background-color: hsla(240,24%,100%,.2);
+}

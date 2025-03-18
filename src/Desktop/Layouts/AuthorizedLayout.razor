@@ -1,12 +1,42 @@
 @using Desktop.Layouts.Redirections
+@using System.Security.Claims
 @inherits LayoutComponentBase
+@inject UserManager UserManager
 @layout MainLayout
 
 <AuthorizeView>
     <Authorized>
-        @Body
+        <CascadingValue Value="m_user" Name="User">
+            <div class="authorized-view">
+                <TopSystemBar />
+                <div class="desktop">
+                    @Body
+                </div>
+            </div>
+        </CascadingValue>
     </Authorized>
     <NotAuthorized>
         <RedirectToLogin />
     </NotAuthorized>
 </AuthorizeView>
+
+@code
+{
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationState { get; set; }
+
+    private UserProfileDto? m_user;
+
+    protected async override Task OnInitializedAsync()
+    {
+        if (authenticationState != null)
+        {
+            var authState = await authenticationState;
+            var userId = authState.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId != null)
+            {
+                m_user = await UserManager.GetUserProfileAsync(userId);
+            }
+        }
+    }
+}

@@ -1,7 +1,7 @@
 @page "/login"
 @using Desktop.Pages.Login.Components
 @inject MicrosoftAuthenticationProvider MicrosoftAuthenticationProvider
-@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject UserManager UserManager
 
 <LoginPanel>
     <h2>WebOS <sup>&reg;</sup></h2>
@@ -20,6 +20,10 @@
 
     private async Task LoginAsGuest()
     {
-        await ((LocalAuthenticationStateProvider)AuthenticationStateProvider).LoginAsync();
+        await UserManager.AuthenticateUser(new UserProfileDto(Consts.GuestUserId)
+        {
+            DisplayName = "Guest",
+            AvatarUrl = Consts.GuestAvatarUrl,
+        });
     }
 }

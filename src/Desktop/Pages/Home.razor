@@ -3,20 +3,10 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject NavigationManager NavigationManager
 
-<h1>Hello @User?.Identity?.Name! Welcome to WebOS!</h1>
+<h1>Hello @User?.DisplayName! Welcome to WebOS!</h1>
 
 @code
 {
-    [CascadingParameter]
-    private Task<AuthenticationState>? authenticationState { get; set; }
-
-    private ClaimsPrincipal? User { get; set; }
-
-    protected override async Task OnInitializedAsync()
-    {
-        if (authenticationState != null)
-        {
-            User = (await authenticationState).User;
-        }
-    }
+    [CascadingParameter(Name = "User")]
+    private UserProfileDto? User { get; set; }
 }
