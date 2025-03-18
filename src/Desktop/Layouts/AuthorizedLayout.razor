@@ -2,6 +2,7 @@
 @using System.Security.Claims
 @inherits LayoutComponentBase
 @inject UserManager UserManager
+@implements IDisposable
 @layout MainLayout
 
 <AuthorizeView>
@@ -36,7 +37,19 @@
             if (userId != null)
             {
                 m_user = await UserManager.GetUserProfileAsync(userId);
+                if (m_user != null)
+                {
+                    m_user.UserProfileUpdated += (s, e) => StateHasChanged();
+                }
             }
+        }
+    }
+
+    public void Dispose()
+    {
+        if (m_user != null)
+        {
+            m_user.UserProfileUpdated -= (s, e) => StateHasChanged();
         }
     }
 }
