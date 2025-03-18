@@ -12,6 +12,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 
 builder.Services.AddAuthorizationCore();
 builder.Services.AddCascadingAuthenticationState();
+builder.Services.AddSingleton<UserManager>();
 builder.Services.AddSingleton<MicrosoftGraphApiOptions>();
 builder.Services.AddSingleton(sp => new MicrosoftOAuthOptions("bb0f2870-69fd-469f-9093-5e1716ec5e60", sp.GetRequiredService<NavigationManager>().ToAbsoluteUri("login/microsoft").ToString()));
 builder.Services.AddHttpClient("ms-graph-api", (sp, client) =>
@@ -23,7 +24,7 @@ builder.Services.AddHttpClient("ms-graph-api", (sp, client) =>
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", options.BearerToken);
     }
 });
-builder.Services.AddScoped<AuthenticationStateProvider, LocalAuthenticationStateProvider>();
+builder.Services.AddScoped<AuthenticationStateProvider>(sp => sp.GetRequiredService<UserManager>());
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.HostEnvironment.BaseAddress) });
 builder.Services.AddScoped<MicrosoftAuthenticationProvider>();
 

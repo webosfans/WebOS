@@ -1,0 +1,46 @@
+<div class="top-system-bar">
+    <div class="system-menu-bar">
+        <div class="logo-icon">
+            @Icons.Logo
+        </div>
+        <div class="menu-item">
+            Help
+        </div>
+    </div>
+    <div class="system-menu-bar">
+        <div>
+            @m_now.ToString("ddd MMM d h:m tt")
+        </div>
+        <div>
+            @if (!string.IsNullOrEmpty(User?.AvatarUrl))
+            {
+                <img src="@User?.AvatarUrl" />
+            }
+            else
+            {
+                @Icons.AnonymousAvatar
+            }
+        </div>
+    </div>
+</div>
+
+@code
+{
+    [CascadingParameter(Name = "User")]
+    private UserProfileDto? User { get; set; }
+
+    private DateTime m_now = DateTime.Now;
+
+    protected override async void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            while (true)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(60 - m_now.Second));
+                m_now = DateTime.Now;
+                StateHasChanged();    
+            }
+        }
+    }
+}
