@@ -10,6 +10,9 @@
 {
     protected override async Task OnInitializedAsync()
     {
-        await MicrosoftAuthenticationProvider.LoginAsync(Navigation.Uri);
+        var callbackUrl = Navigation.Uri;
+        // Remove token from address bar.
+        Navigation.NavigateTo("/login/microsoft");
+        await MicrosoftAuthenticationProvider.LoginAsync(callbackUrl);
     }
 }
