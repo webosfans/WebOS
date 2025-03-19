@@ -1,0 +1,19 @@
+@namespace Desktop.Components
+@inherits ComponentBase
+
+<div class="dock-item" @onclick="OnClick">
+    <div class="tooltip">@Name</div>
+    <img src="@Icon" style="@Style" />
+</div>
+
+@code
+{
+    [Parameter]
+    public required string Icon { get; set; }
+
+    [Parameter]
+    public required string Name { get; set; }
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
+}
