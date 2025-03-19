@@ -1,12 +1,1 @@
 @page "/"
-@using System.Security.Claims
-@inject AuthenticationStateProvider AuthenticationStateProvider
-@inject NavigationManager NavigationManager
-
-<h1>Hello @User?.DisplayName! Welcome to WebOS!</h1>
-
-@code
-{
-    [CascadingParameter(Name = "User")]
-    private UserProfileDto? User { get; set; }
-}
