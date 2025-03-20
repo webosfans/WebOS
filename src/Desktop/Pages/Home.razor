@@ -1,1 +1,110 @@
 @page "/"
+@inject BrowserService BrowserService
+@inject IJSRuntime JS
+
+<TopSystemBar />
+<div @ref="m_desktopDom" class="desktop" onresize="@(() => OnResize())">
+    <div class="windows-area">
+        @foreach (var window in m_openedAppWindows)
+        {
+            <Window
+                Title="@window.App.DisplayName"
+                Left="@window.Left"
+                Top="@window.Top"
+                Width="@window.Width"
+                Height="@window.Height"
+                ZIndex="@window.ZIndex"
+                OnFocus="e => FocusWindow(window)"
+                OnMove="e => MoveWindow(window, e.Left, e.Top, e.Width, e.Height)"
+                OnClose="e => CloseWindow(window)" />
+        }
+    </div>
+    <Dock OnOpen="app => Open(app)" />
+</div>
+
+
+@code
+{
+    private ElementReference m_desktopDom;
+
+    private List<AppWindow> m_openedAppWindows = new ();
+
+    private Size m_desktopSize = new (0, 0);
+
+    private void Open(AppDto app)
+    {
+        var openedAppWindow = m_openedAppWindows.FirstOrDefault(window => window.App == app);
+        if (openedAppWindow == null)
+        {
+            var topWindow = m_openedAppWindows.FirstOrDefault(window => window.ZIndex == m_openedAppWindows.Count);
+            var (left, top) = topWindow == null ? (50, 50) : (topWindow.Left + 50, topWindow.Top + 50);
+            m_openedAppWindows.Add(new AppWindow(app) { Left = left, Top = top, Width = 600, Height = 500, ZIndex = m_openedAppWindows.Count + 1 });
+        }
+        else
+        {
+            FocusWindow(openedAppWindow);
+        }
+    }
+
+    private void FocusWindow(AppWindow window)
+    {
+        if (window.ZIndex == m_openedAppWindows.Count)
+        {
+            return;
+        }
+
+        foreach (var openedWindow in m_openedAppWindows)
+        {
+            --openedWindow.ZIndex;
+        }
+        window.ZIndex = m_openedAppWindows.Count;
+    }
+
+    private void MoveWindow(AppWindow window, int left, int top, int width, int height)
+    {
+        window.Width = Math.Min(m_desktopSize.Width, width);
+        window.Height = Math.Min(m_desktopSize.Height, height);
+        window.Left = Math.Clamp(left, 0, m_desktopSize.Width - window.Width);
+        window.Top = Math.Clamp(top, 0, m_desktopSize.Height - window.Height);
+    }
+
+    private void CloseWindow(AppWindow app)
+    {
+        m_openedAppWindows.Remove(app);
+    }
+
+    private record AppWindow(AppDto App)
+    {
+        public int Left { get; set; }
+        public int Top { get; set; }
+        public int Width { get; set; }
+        public int Height { get; set; }
+        public int ZIndex { get; set; }
+    }
+
+    private record Size(int Width, int Height);
+
+    protected async override Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+
+        if (firstRender)
+        {
+            BrowserService.OnResize += (s, e) => OnResize();
+            OnResize();
+        }
+    }
+
+    private async void OnResize()
+    {
+        var size = await JS.InvokeAsync<int[]>("DomGetSize", m_desktopDom);
+        m_desktopSize = new Size(size[0], size[1]);
+
+        foreach (var window in m_openedAppWindows)
+        {
+            MoveWindow(window, window.Left, window.Top, window.Width, window.Height);
+        }
+
+        StateHasChanged();
+    }
+}

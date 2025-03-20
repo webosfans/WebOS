@@ -13,6 +13,7 @@ builder.RootComponents.Add<HeadOutlet>("head::after");
 builder.Services.AddAuthorizationCore();
 builder.Services.AddCascadingAuthenticationState();
 builder.Services.AddSingleton<ApplicationManager>();
+builder.Services.AddSingleton<BrowserService>();
 builder.Services.AddSingleton<UserManager>();
 builder.Services.AddSingleton<MicrosoftGraphApiOptions>();
 builder.Services.AddSingleton(sp => new MicrosoftOAuthOptions("bb0f2870-69fd-469f-9093-5e1716ec5e60", sp.GetRequiredService<NavigationManager>().ToAbsoluteUri("login/microsoft").ToString()));
