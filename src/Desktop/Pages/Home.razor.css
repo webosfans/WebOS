@@ -1,0 +1,11 @@
+.desktop {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    position: relative;
+}
+
+.windows-area {
+    display: flex;
+    flex: 1;
+}

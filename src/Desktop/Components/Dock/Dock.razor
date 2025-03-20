@@ -5,10 +5,10 @@
 <div class="dock">
     @if (ApplicationManager.PinedApplications.Count > 0)
     {
-        <div @ref="_container" class="container" @onmousemove="OnMouseMove" @onmouseleave="OnMouseLeave">
+        <div @ref="m_container" class="container" @onmousemove="OnMouseMove" @onmouseleave="OnMouseLeave">
             @foreach (var app in ApplicationManager.PinedApplications)
             {
-                <DockItem Icon="@app.Icon" Name="@app.DisplayName" Style="@($"width: {DefaultIconWidth}rem")" />
+                <DockItem Icon="@app.Icon" Name="@app.DisplayName" Style="@($"width: {DefaultIconWidth}rem")" OnClick="e => OnOpen.InvokeAsync(app)" />
             }
         </div>
     }
@@ -21,7 +21,10 @@
     protected override string? JSFile
     => "/Components/Dock/Dock.razor.js";
 
-    private ElementReference _container;
+    private ElementReference m_container;
+
+    [Parameter]
+    public EventCallback<AppDto> OnOpen { get; set; }
 
     protected override void OnInitialized()
     {
@@ -29,10 +32,10 @@
     }
 
     private async Task OnMouseMove(MouseEventArgs e)
-    => await (JSModule?.InvokeVoidAsync("OnMouseMove", _container, e.ClientX, DefaultIconWidth) ?? default);
+    => await (JSModule?.InvokeVoidAsync("OnMouseMove", m_container, e.ClientX, DefaultIconWidth) ?? default);
 
     private async Task OnMouseLeave(MouseEventArgs e)
-    => await (JSModule?.InvokeVoidAsync("OnMouseLeave", _container, DefaultIconWidth) ?? default);
+    => await (JSModule?.InvokeVoidAsync("OnMouseLeave", m_container, DefaultIconWidth) ?? default);
 
     public override ValueTask DisposeAsync()
     {
