@@ -1,5 +1,5 @@
 namespace Desktop.DTOs;
 
-public record class AppDto(string DisplayName, string Icon)
+public record class AppDto(string DisplayName, string Icon, string RouteAddress)
 {
 }
