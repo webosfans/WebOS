@@ -9,6 +9,9 @@ public class ApplicationManager
 
     public ApplicationManager()
     {
-        PinedApplications.Add(new AppDto("News", "/assets/img/app_icons/news@256x256.png", "/apps/news"));
+        PinedApplications.Add(new AppDto("News", "/assets/img/app_icons/news@256x256.png", "/apps/news")
+        {
+            DefaultWidth = 960
+        });
     }   
 }
