@@ -39,7 +39,9 @@
         {
             var topWindow = m_openedAppWindows.FirstOrDefault(window => window.ZIndex == m_openedAppWindows.Count);
             var (left, top) = topWindow == null ? (50, 50) : (topWindow.Left + 50, topWindow.Top + 50);
-            m_openedAppWindows.Add(new AppWindow(app) { Left = left, Top = top, Width = 600, Height = 500, ZIndex = m_openedAppWindows.Count + 1 });
+            var width = app.DefaultWidth == 0 ? 600 : app.DefaultWidth;
+            var height = app.DefaultHeight == 0 ? 500 : app.DefaultHeight;
+            m_openedAppWindows.Add(new AppWindow(app) { Left = left, Top = top, Width = width, Height = height, ZIndex = m_openedAppWindows.Count + 1 });
         }
         else
         {

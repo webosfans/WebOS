@@ -1,3 +1,10 @@
 .main-layout {
-
+    display: flex;
+    overflow: hidden;
+    color: #fff;
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    top: 0;
 }
