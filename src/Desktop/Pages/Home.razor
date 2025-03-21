@@ -14,6 +14,7 @@
                 Width="@window.Width"
                 Height="@window.Height"
                 ZIndex="@window.ZIndex"
+                AppRoutePath="@window.App.RouteAddress"
                 OnFocus="e => FocusWindow(window)"
                 OnMove="e => MoveWindow(window, e.Left, e.Top, e.Width, e.Height)"
                 OnClose="e => CloseWindow(window)" />
