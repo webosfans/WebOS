@@ -1,0 +1,44 @@
+.infinite-list {
+    flex: 1;
+    overflow-y: auto;    
+
+    .loader {
+        display: flex;
+        flex: 1;
+        gap: 1rem;
+        justify-content: center;
+        align-items: center;
+        height: 5rem;
+        position: relative;
+
+        div {
+            width: 1rem;
+            background-color: var(--app-fgcolor);
+            animation: loader 1.2s cubic-bezier(0, 0.5, 0.5, 1) infinite;
+        }
+
+        div:nth-child(1) {
+            animation-delay: -0.24s;
+        }
+
+        div:nth-child(2) {
+            animation-delay: -0.12s;
+        }
+
+        div:nth-child(2) {
+            animation-delay: 0;
+        }
+    }
+}
+
+@keyframes loader {
+    0% {
+        top: .5rem;
+        height: 4rem;
+    }
+    50%,
+    100% {
+        top: 1.5rem;
+        height: 2rem;
+    }
+}

@@ -1,0 +1,18 @@
+@code
+{
+    private static IServiceProvider? s_serviceProvider;
+
+    public static IServiceProvider ServiceProvider
+    {
+        get 
+        {
+            if (s_serviceProvider == null)
+            {
+                var sc = new ServiceCollection();
+                sc.AddNewsServices();
+                s_serviceProvider = sc.BuildServiceProvider();
+            }
+            return s_serviceProvider;
+        }
+    }
+}
