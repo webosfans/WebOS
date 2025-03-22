@@ -1,0 +1,22 @@
+@namespace WUL
+
+@((MarkupString)BuildTheme())
+
+@code
+{
+    [Parameter]
+    public WULTheme Theme { get; set; }
+
+    private string BuildTheme()
+    {
+        return new StringBuilder()
+            .AppendLine("<style>")
+            .AppendLine("@import url('./_content/WUL/css/wul.css');")
+            .AppendLine(":root {")
+            .AppendLine("--wul-color: rgb(231, 233, 234);")
+            .AppendLine("--wul-background: #1b1b1d;")
+            .AppendLine("--wul-scrollbar: rgb(62, 65, 68) var(--wul-background)")
+            .AppendLine("}")
+            .ToString();
+    }
+}

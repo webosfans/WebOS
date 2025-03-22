@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\News\News.csproj" />
+    <ProjectReference Include="..\WUL\WUL.csproj" />
   </ItemGroup>
 
 </Project>

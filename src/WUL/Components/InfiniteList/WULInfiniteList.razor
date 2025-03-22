@@ -3,18 +3,18 @@
 @inherits WULComponentBase
 @typeparam T
 
-@if (ActiveFetch != null)
+@if (ActiveFetch != null && (ChildContent != null || ItemsTemplate != null))
 {
     <Virtualize Items="@ActiveFetch.Items" Context="item">
-        @ItemsTemplate(@item)
+        @((ChildContent ?? ItemsTemplate)!(@item))
     </Virtualize>
 
-    @if (ActiveFetch.IsLoading)
+    @if (!ActiveFetch.NoMoreData)
     {
-        @LoadingTemplate
+        <div @ref="LastItemIndicator">
+            @LoadingTemplate
+        </div>
     }
-
-    <div @ref="LastItemIndicator" style="height:1px"></div>
 }
 
 @code
@@ -22,20 +22,23 @@
     public delegate Task<IEnumerable<E>> ItemsRequestDelegate<E>(int startIndex, int count, CancellationToken
     cancellationToken);
 
-    private FetchContext ActiveFetch { get; set; }
-    private DotNetObjectReference<WULInfiniteList<T>> CurrentComponent { get; set; }
-    private IJSObjectReference JsInstance { get; set; }
+    private FetchContext? ActiveFetch { get; set; }
+    private DotNetObjectReference<WULInfiniteList<T>>? CurrentComponent { get; set; }
+    private IJSObjectReference? JsInstance { get; set; }
     private ElementReference LastItemIndicator { get; set; }
-    private CancellationTokenSource CancellationTokenSource { get; set; }
+    private CancellationTokenSource? CancellationTokenSource { get; set; }
 
     [Parameter]
-    public ItemsRequestDelegate<T> ItemsProvider { get; set; }
+    public ItemsRequestDelegate<T>? ItemsProvider { get; set; }
 
     [Parameter]
-    public RenderFragment<T> ItemsTemplate { get; set; }
+    public RenderFragment<T>? ItemsTemplate { get; set; }
 
     [Parameter]
-    public RenderFragment LoadingTemplate { get; set; }
+    public RenderFragment<T>? ChildContent { get; set; }
+
+    [Parameter]
+    public RenderFragment LoadingTemplate { get; set; } = @<WULLoadingIndicator Style="WULLoadingIndicator.StyleVariant.Dot" />;
 
     protected override string? JSFile
     => "./_content/WUL/Components/InfiniteList/WULInfiniteList.razor.js";
@@ -43,8 +46,13 @@
     [JSInvokable]
     public async Task LoadMoreItems()
     {
+        if (ItemsProvider == null || ActiveFetch == null)
+        {
+            return;
+        }
+
         var activeFetch = ActiveFetch;
-        if (activeFetch.IsLoading || activeFetch.IsStopped)
+        if (activeFetch.IsLoading || activeFetch.NoMoreData)
         {
             return;
         }
@@ -61,11 +69,10 @@
                 const int count = 10;
                 var newItems = await ItemsProvider(activeFetch.Items.Count, count, CancellationTokenSource.Token);
                 activeFetch.Items.AddRange(newItems);
-                // await JsInstance.InvokeVoidAsync("onNewItems");
-                if (newItems.Count() < 10)
+                if (newItems.Count() < count)
                 {
                     // No more items, stop more fetching.
-                    activeFetch.IsStopped = true;
+                    activeFetch.NoMoreData = true;
                 }
             }
             catch (OperationCanceledException ex) when (ex.CancellationToken == CancellationTokenSource.Token)
@@ -94,14 +101,14 @@
     {
         await base.OnAfterRenderAsync(firstRender);
 
-        if (firstRender)
+        if (JSModule != null && firstRender)
         {
             CurrentComponent = DotNetObjectReference.Create(this);
             JsInstance = await JSModule.InvokeAsync<IJSObjectReference>("initialize", LastItemIndicator, CurrentComponent);
         }
     }
 
-    public async ValueTask DisposeAsync()
+    public override async ValueTask DisposeAsync()
     {
         if (CancellationTokenSource != null)
         {
@@ -125,7 +132,7 @@
     private class FetchContext
     {
         public bool IsLoading { get; set; }
-        public bool IsStopped { get; set; }
+        public bool NoMoreData { get; set; }
         public List<T> Items { get; set; } = new();
     }
 }

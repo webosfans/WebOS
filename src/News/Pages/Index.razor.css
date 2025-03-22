@@ -32,6 +32,7 @@
     overflow-y: auto;
     overflow-x: hidden;
     position: relative;
+    scrollbar-color: var(--wul-scrollbar);
 }
 
 .timeline {
@@ -43,7 +44,6 @@
         display: flex;
         padding: 1rem;
         border-bottom: 1px solid rgb(47, 51, 54);
-        min-height: 8rem;
 
         .avatar-column {
             .avatar {
@@ -67,12 +67,14 @@
             }
 
             .content {
-                flex: 1
+                flex: 1;
+                min-height: 4rem;
             }
 
             .action-bar {
                 display: flex;
                 justify-content: space-between;
+                margin-top: 1rem;
 
                 .btn {
                     color: rgb(47, 51, 54);

@@ -1,7 +1,7 @@
 .window {
     position: absolute;
     box-shadow: 0 33px 81px rgba(0, 0, 0, 0.31);
-    background-color: #1b1b1d;
+    background-color: var(--wul-background);
     border-radius: .75rem;
     display: flex;
     flex-direction: column;
@@ -63,6 +63,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
+        position: relative;
 
         iframe {
             display: flex;

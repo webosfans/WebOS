@@ -1,0 +1,14 @@
+@namespace WUL
+
+<span class="@($"loading-indicator {Style.ToString().ToLower()}")"></span>
+
+@code
+{
+    public enum StyleVariant
+    {
+        Dot,
+    }
+
+    [Parameter]
+    public StyleVariant Style { get; set; }
+}
