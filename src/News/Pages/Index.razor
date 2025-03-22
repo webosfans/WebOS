@@ -9,58 +9,80 @@
         @Icons.Bookmark
     </div>
 </div>
-<div class="timeline">
-    <div class="item">
-        <div class="avatar-column">
-            <div class="avatar">
-                <img src="https://webos.fans/assets/img/guest_avatar.png" />
-            </div>
-        </div>
-        <div class="content-column">
-            <div class="author-row">
-                <div class="author">Fox News</div>
-            </div>
-            <div class="content">
-                bla, bla, bla ...
-            </div>
-            <div class="action-bar">
-                <div class="btn" title="Replay">@Icons.Chat</div>
-                <div class="btn" title="Like">@Icons.Heart</div>
-                <div class="btn" title="Bookmark">@Icons.Bookmark</div>
-                <div class="btn" title="Share">@Icons.Share</div>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="right-nav">
-    <div class="search">
-        <div class="icon">
-            @Icons.Search
-        </div>
-        <input placeholder="Search" />
-    </div>
-
-    <div class="section">
-        <div class="title">Relevant source</div>
-        <div class="list">
-            <div class="source-item">
-                <div class="avatar">
-                    <img src="https://webos.fans/assets/img/guest_avatar.png" />
-                </div>
-                <div class="info">
-                    <div class="author-row">
-                        <div class="auth-info">
-                            <div class="author">Fox News</div>
-                            <div class="id">@@fox-news</div>
-                        </div>
-                        <div class="action">
-                            <div class="btn">Follow</div>
+<div class="right-panel">
+    <div class="timeline">
+        <InfiniteList Context="news" ItemsProvider="@((startIndex, count, _) => LoadMoreNewsAsync())">
+            <ItemsTemplate>
+                <div class="item">
+                    <div class="avatar-column">
+                        <div class="avatar">
+                            <img src="https://webos.fans/assets/img/guest_avatar.png" />
                         </div>
                     </div>
-                    <div class="intro">Latest news, bla bla bla ...</div>
+                    <div class="content-column">
+                        <div class="author-row">
+                            <div class="author">@news.PublisherId</div>
+                        </div>
+                        <div class="content">@news.Content</div>
+                        <div class="action-bar">
+                            <div class="btn" title="Replay">@Icons.Chat</div>
+                            <div class="btn" title="Like">@Icons.Heart</div>
+                            <div class="btn" title="Bookmark">@Icons.Bookmark</div>
+                            <div class="btn" title="Share">@Icons.Share</div>
+                        </div>
+                    </div>
                 </div>
+            </ItemsTemplate>
+            <LoadingTemplate>
+                Loading...
+            </LoadingTemplate>
+        </InfiniteList>
+    </div>
+    <div class="right-nav">
+        <div class="search">
+            <div class="icon">
+                @Icons.Search
+            </div>
+            <input placeholder="Search" />
+        </div>
 
+        <div class="section">
+            <div class="title">Relevant source</div>
+            <div class="list">
+                <div class="source-item">
+                    <div class="avatar">
+                        <img src="https://webos.fans/assets/img/guest_avatar.png" />
+                    </div>
+                    <div class="info">
+                        <div class="author-row">
+                            <div class="auth-info">
+                                <div class="author">Fox News</div>
+                                <div class="id">@@fox-news</div>
+                            </div>
+                            <div class="action">
+                                <div class="btn">Follow</div>
+                            </div>
+                        </div>
+                        <div class="intro">Latest news, bla bla bla ...</div>
+                    </div>
+
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+@code
+{
+    private NewsService NewsService { get; } = App.ServiceProvider.GetRequiredService<NewsService>();
+        
+    private int m_nextPage = 0;
+
+    private IEnumerable<NewsDto>? m_newses;
+
+    private async Task<IEnumerable<NewsDto>> LoadMoreNewsAsync()
+    {
+        var news = await NewsService.GetFollowedNewsAsync(m_nextPage++);
+        return news;
+    }
+}
