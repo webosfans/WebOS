@@ -1,6 +1,6 @@
 @using Microsoft.AspNetCore.Components.Web.Virtualization
-@inject IJSRuntime JSRuntime
-@implements IAsyncDisposable
+@namespace WUL
+@inherits WULComponentBase
 @typeparam T
 
 @if (ActiveFetch != null)
@@ -19,11 +19,11 @@
 
 @code
 {
-    public delegate Task<IEnumerable<E>> ItemsRequestDelegate<E>(int startIndex, int count, CancellationToken cancellationToken);
+    public delegate Task<IEnumerable<E>> ItemsRequestDelegate<E>(int startIndex, int count, CancellationToken
+    cancellationToken);
 
     private FetchContext ActiveFetch { get; set; }
-    private IJSObjectReference JsModule { get; set; }
-    private DotNetObjectReference<InfiniteList<T>> CurrentComponent { get; set; }
+    private DotNetObjectReference<WULInfiniteList<T>> CurrentComponent { get; set; }
     private IJSObjectReference JsInstance { get; set; }
     private ElementReference LastItemIndicator { get; set; }
     private CancellationTokenSource CancellationTokenSource { get; set; }
@@ -36,6 +36,9 @@
 
     [Parameter]
     public RenderFragment LoadingTemplate { get; set; }
+
+    protected override string? JSFile
+    => "./_content/WUL/Components/InfiniteList/WULInfiniteList.razor.js";
 
     [JSInvokable]
     public async Task LoadMoreItems()
@@ -89,11 +92,12 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        await base.OnAfterRenderAsync(firstRender);
+
         if (firstRender)
         {
             CurrentComponent = DotNetObjectReference.Create(this);
-            JsModule = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/News/js/infinite-list.js");
-            JsInstance = await JsModule.InvokeAsync<IJSObjectReference>("initialize", LastItemIndicator, CurrentComponent);
+            JsInstance = await JSModule.InvokeAsync<IJSObjectReference>("initialize", LastItemIndicator, CurrentComponent);
         }
     }
 
@@ -110,15 +114,12 @@
             await JsInstance.DisposeAsync();
         }
 
-        if (JsModule != null)
-        {
-            await JsModule.DisposeAsync();
-        }
-
         if (CurrentComponent != null)
         {
             CurrentComponent.Dispose();
         }
+
+        await base.DisposeAsync();
     }
 
     private class FetchContext

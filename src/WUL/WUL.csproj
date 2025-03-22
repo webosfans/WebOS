@@ -15,8 +15,4 @@
     <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.3" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\WUL\WUL.csproj" />
-  </ItemGroup>
-
 </Project>
