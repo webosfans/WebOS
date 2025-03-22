@@ -11,7 +11,7 @@
 </div>
 <div class="right-panel">
     <div class="timeline">
-        <InfiniteList Context="news" ItemsProvider="@((startIndex, count, _) => LoadMoreNewsAsync())">
+        <WULInfiniteList Context="news" ItemsProvider="@((startIndex, count, _) => LoadMoreNewsAsync())">
             <ItemsTemplate>
                 <div class="item">
                     <div class="avatar-column">
@@ -36,7 +36,7 @@
             <LoadingTemplate>
                 Loading...
             </LoadingTemplate>
-        </InfiniteList>
+        </WULInfiniteList>
     </div>
     <div class="right-nav">
         <div class="search">
