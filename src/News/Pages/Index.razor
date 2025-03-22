@@ -12,30 +12,25 @@
 <div class="right-panel">
     <div class="timeline">
         <WULInfiniteList Context="news" ItemsProvider="@((startIndex, count, _) => LoadMoreNewsAsync())">
-            <ItemsTemplate>
-                <div class="item">
-                    <div class="avatar-column">
-                        <div class="avatar">
-                            <img src="https://webos.fans/assets/img/guest_avatar.png" />
-                        </div>
-                    </div>
-                    <div class="content-column">
-                        <div class="author-row">
-                            <div class="author">@news.PublisherId</div>
-                        </div>
-                        <div class="content">@news.Content</div>
-                        <div class="action-bar">
-                            <div class="btn" title="Replay">@Icons.Chat</div>
-                            <div class="btn" title="Like">@Icons.Heart</div>
-                            <div class="btn" title="Bookmark">@Icons.Bookmark</div>
-                            <div class="btn" title="Share">@Icons.Share</div>
-                        </div>
+            <div class="item">
+                <div class="avatar-column">
+                    <div class="avatar">
+                        <img src="https://webos.fans/assets/img/guest_avatar.png" />
                     </div>
                 </div>
-            </ItemsTemplate>
-            <LoadingTemplate>
-                Loading...
-            </LoadingTemplate>
+                <div class="content-column">
+                    <div class="author-row">
+                        <div class="author">@news.PublisherId</div>
+                    </div>
+                    <div class="content">@((MarkupString)news.Content)</div>
+                    <div class="action-bar">
+                        <div class="btn" title="Replay">@Icons.Chat</div>
+                        <div class="btn" title="Like">@Icons.Heart</div>
+                        <div class="btn" title="Bookmark">@Icons.Bookmark</div>
+                        <div class="btn" title="Share">@Icons.Share</div>
+                    </div>
+                </div>
+            </div>
         </WULInfiniteList>
     </div>
     <div class="right-nav">

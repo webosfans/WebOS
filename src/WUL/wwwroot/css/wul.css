@@ -1,0 +1,4 @@
+html, body, #app {
+    color: var(--wul-color);
+    background-color: var(--wul-background);
+}
