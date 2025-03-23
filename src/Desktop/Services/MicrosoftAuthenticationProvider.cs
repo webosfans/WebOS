@@ -1,5 +1,4 @@
 using Desktop.DTOs;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Primitives;
 using System.Net.Http.Json;
@@ -19,17 +18,30 @@ public class MicrosoftAuthenticationProvider
     private readonly HttpClient m_defaultHttpClient;
     private readonly string m_codeVerifier;
     private readonly string m_codeChallenge;
+    private readonly BrowserService m_browserService;
 
     public string LoginUrl =>
         new StringBuilder($"https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize")
             .Append($"?client_id={m_microsoftOAuthOptions.ClientId}")
             .Append($"&redirect_uri={m_microsoftOAuthOptions.CallbackUrl}")
-            .Append("&response_type=code+id_token")
+            .Append("&response_type=code")
             .Append("&response_mode=fragment")
-            .Append("&scope=files.readwrite+user.read+openid")
+            .Append("&scope=files.readwrite+user.read")
             .Append("&nonce=webos")
+            .Append("&state=0")
             .Append($"&code_challenge={m_codeChallenge}")
             .Append("&code_challenge_method=S256")
+            .ToString();
+
+    private string LoginUrlForIdToken =>
+        new StringBuilder($"https://login.microsoftonline.com/consumers/oauth2/v2.0/authorize")
+            .Append($"?client_id={m_microsoftOAuthOptions.ClientId}")
+            .Append($"&redirect_uri={m_microsoftOAuthOptions.CallbackUrl}")
+            .Append("&response_type=id_token")
+            .Append("&response_mode=fragment")
+            .Append("&scope=openid")
+            .Append("&nonce=webos")
+            .Append($"&state=1")
             .ToString();
 
     public MicrosoftAuthenticationProvider(
@@ -37,7 +49,8 @@ public class MicrosoftAuthenticationProvider
         MicrosoftGraphApiOptions microsfotGraphApiOptions,
         MicrosoftOAuthOptions microsoftOAuthOptions,
         UserManager userManager,
-        HttpClient defaultHttpClient)
+        HttpClient defaultHttpClient,
+        BrowserService browserService)
     {
         m_httpClientFactory = httpClientFactory;
         m_microsoftGraphApiOptions = microsfotGraphApiOptions;
@@ -46,16 +59,61 @@ public class MicrosoftAuthenticationProvider
         m_defaultHttpClient = defaultHttpClient;
         m_codeVerifier = GenerateCodeVerifier();
         m_codeChallenge = GenerateCodeChallenge(m_codeVerifier);
+        m_browserService = browserService;
     }
 
-    public async Task LoginAsync(string callbackUrl)
+    public Task<string> LoginAsync(string callbackUrl)
     {
         // Get callback parameters.
         var fragment = callbackUrl.Substring(callbackUrl.IndexOf('#') + 1);
         var queries = QueryHelpers.ParseQuery(fragment);
 
+        // Get state.
+        var state = GetValue(queries, "state");
+        if (string.IsNullOrEmpty(state))
+        {
+            throw new Exception($"Login failed (no state)");
+        }
+
+        switch (state)
+        {
+            case "0":
+                return ProcessLoginCallbackState0Async(queries);
+
+            case "1":
+                return ProcessLoginCallbackState1Async(queries);
+
+            default:
+                throw new Exception($"Login failed (unknown state)");
+        }
+    }
+
+    /// <summary>
+    /// Process the fist state login, in this state, we need extract the code and return the link to get the id token.
+    /// </summary>
+    private async Task<string> ProcessLoginCallbackState0Async(IDictionary<string, StringValues> queries)
+    {
         // Get code.
         var code = GetValue(queries, "code");
+        if (string.IsNullOrEmpty(code))
+        {
+            throw new Exception($"Login failed (no code)");
+        }
+
+        // Save the code temporarily.
+        await m_browserService.SessionSaveItemAsync("ms-access-code", code);
+
+        // Return the link to get the id token.
+        return LoginUrlForIdToken;
+    }
+
+    /// <summary>
+    /// Process the second state login, in this state, we need extract the id token and authenticate the user.
+    /// </summary>
+    private async Task<string> ProcessLoginCallbackState1Async(IDictionary<string, StringValues> queries)
+    {
+        // Get code
+        var code = await m_browserService.SessionLoadAndCleanItemAsync("ms-access-code");
         if (string.IsNullOrEmpty(code))
         {
             throw new Exception($"Login failed (no code)");
@@ -100,7 +158,10 @@ public class MicrosoftAuthenticationProvider
         await m_userManager.AuthenticateUser(new UserProfileDto("fake-id")
         {
             DisplayName = userProfileResponse.DisplayName,
-        });
+        }, token: $"Bearer {idToken}");
+
+        // No need more login.
+        return string.Empty;
     }
 
     private string? GetValue(IDictionary<string, StringValues> dict, string key)
