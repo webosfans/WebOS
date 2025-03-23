@@ -13,6 +13,10 @@
         var callbackUrl = Navigation.Uri;
         // Remove token from address bar.
         Navigation.NavigateTo("/login/microsoft");
-        await MicrosoftAuthenticationProvider.LoginAsync(callbackUrl);
+        var nextUrl = await MicrosoftAuthenticationProvider.LoginAsync(callbackUrl);
+        if (!string.IsNullOrEmpty(nextUrl))
+        {
+            Navigation.NavigateTo(nextUrl);
+        }
     }
 }

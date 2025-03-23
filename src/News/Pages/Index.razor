@@ -15,14 +15,14 @@
             <div class="item">
                 <div class="avatar-column">
                     <div class="avatar">
-                        <img src="https://webos.fans/assets/img/guest_avatar.png" />
+                        <img src="@news.Publisher?.Icon" />
                     </div>
                 </div>
                 <div class="content-column">
                     <div class="author-row">
-                        <div class="author">@news.PublisherId</div>
+                        <div class="author">@news.Publisher?.Name</div>
                     </div>
-                    <div class="content">@((MarkupString)news.Content)</div>
+                    <div class="content">@news.Content</div>
                     <div class="action-bar">
                         <div class="btn" title="Replay">@Icons.Chat</div>
                         <div class="btn" title="Like">@Icons.Heart</div>
@@ -69,15 +69,10 @@
 
 @code
 {
-    private NewsService NewsService { get; } = App.ServiceProvider.GetRequiredService<NewsService>();
-        
+    private NewsService? NewsService { get; } = App.Instance?.ServiceProvider.GetRequiredService<NewsService>();
+
     private int m_nextPage = 0;
 
-    private IEnumerable<NewsDto>? m_newses;
-
     private async Task<IEnumerable<NewsDto>> LoadMoreNewsAsync()
-    {
-        var news = await NewsService.GetFollowedNewsAsync(m_nextPage++);
-        return news;
-    }
+    => NewsService != null ? await NewsService.GetFollowedNewsAsync(m_nextPage++) : [];
 }

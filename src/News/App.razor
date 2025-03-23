@@ -1,18 +1,30 @@
+@inject IServiceProvider ParentServiceProvider
+@implements IDisposable
+
 @code
 {
-    private static IServiceProvider? s_serviceProvider;
+    public static App? Instance;
 
-    public static IServiceProvider ServiceProvider
+    private IServiceProvider? m_serviceProvider;
+    public IServiceProvider ServiceProvider
     {
-        get 
+        get
         {
-            if (s_serviceProvider == null)
+            if (m_serviceProvider == null)
             {
-                var sc = new ServiceCollection();
-                sc.AddNewsServices();
-                s_serviceProvider = sc.BuildServiceProvider();
+                m_serviceProvider = new ServiceCollection().AddNewsServices(ParentServiceProvider).BuildServiceProvider();
             }
-            return s_serviceProvider;
+            return m_serviceProvider;
         }
+    }
+
+    protected override void OnInitialized()
+    {
+        Instance = this;
+    }
+
+    public virtual void Dispose()
+    {
+        Instance = null;
     }
 }

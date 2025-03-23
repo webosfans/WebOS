@@ -16,7 +16,7 @@ builder.Services.AddSingleton<ApplicationManager>();
 builder.Services.AddSingleton<BrowserService>();
 builder.Services.AddSingleton<UserManager>();
 builder.Services.AddSingleton<MicrosoftGraphApiOptions>();
-builder.Services.AddSingleton(sp => new MicrosoftOAuthOptions("bb0f2870-69fd-469f-9093-5e1716ec5e60", sp.GetRequiredService<NavigationManager>().ToAbsoluteUri("login/microsoft").ToString()));
+builder.Services.AddSingleton(sp => new MicrosoftOAuthOptions(Consts.MicrosoftOAuthClientId, sp.GetRequiredService<NavigationManager>().ToAbsoluteUri("login/microsoft").ToString()));
 builder.Services.AddHttpClient("ms-graph-api", (sp, client) =>
 {
     client.BaseAddress = new Uri("https://graph.microsoft.com/v1.0/");

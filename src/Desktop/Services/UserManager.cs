@@ -1,5 +1,4 @@
 using System.Security.Claims;
-using System.Text.Json.Serialization;
 using Desktop.DTOs;
 using Microsoft.AspNetCore.Components.Authorization;
 
@@ -7,22 +6,36 @@ namespace Desktop.Services;
 
 public class UserManager : AuthenticationStateProvider
 {
+    private readonly BrowserService m_browserService;
     private readonly IHttpClientFactory m_httpClientFactory;
     private Dictionary<string, UserProfileDto> m_userProfileStore = new();
 
-    public UserManager(IHttpClientFactory httpClientFactory)
+    public UserManager(IHttpClientFactory httpClientFactory, BrowserService browserService)
     {
         m_httpClientFactory = httpClientFactory;
+        m_browserService = browserService;
     }
 
-    public override Task<AuthenticationState> GetAuthenticationStateAsync()
+    public override async Task<AuthenticationState> GetAuthenticationStateAsync()
     {
-        // Return not authenticated user.
-        var user = new ClaimsPrincipal();
-        return Task.FromResult(new AuthenticationState(user));
+        ClaimsPrincipal user;
+        var userId = await m_browserService.SessionLoadItemAsync("user-id");
+        var userToken = await m_browserService.SessionLoadItemAsync("user-token");
+        if (!string.IsNullOrEmpty(userId) && !string.IsNullOrEmpty(userToken))
+        {
+            user = new ClaimsPrincipal(new ClaimsIdentity([
+                new Claim(ClaimTypes.NameIdentifier, userId),
+                new Claim(ClaimTypes.Authentication, userToken),
+            ], nameof(UserManager)));
+        }
+        else
+        {
+            user = new ClaimsPrincipal();
+        }
+        return new AuthenticationState(user);
     }
 
-    public async Task AuthenticateUser(UserProfileDto userProfile)
+    public async Task AuthenticateUser(UserProfileDto userProfile, string? token)
     {
         AddUser(userProfile);
 
@@ -31,6 +44,22 @@ public class UserManager : AuthenticationStateProvider
         var user = new ClaimsPrincipal(new ClaimsIdentity([
             new Claim(ClaimTypes.NameIdentifier, userProfile.Id),
         ], nameof(UserManager)));
+
+        if (!string.IsNullOrEmpty(token))
+        {
+            user.AddIdentity(new ClaimsIdentity([
+                new Claim(ClaimTypes.Authentication, token),
+            ]));
+
+            await m_browserService.SessionSaveItemAsync("user-id", token);
+            await m_browserService.SessionSaveItemAsync("user-token", token);
+        }
+        else
+        {
+            await m_browserService.SessionLoadAndCleanItemAsync("user-id");
+            await m_browserService.SessionLoadAndCleanItemAsync("user-token");
+        }
+
         NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(user)));
 
         await Task.CompletedTask;
