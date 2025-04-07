@@ -1,10 +1,4 @@
-@using Microsoft.AspNetCore.Components.WebAssembly.Services
-@using System.Reflection
-@inject ILogger<App> Logger
-@inject LazyAssemblyLoader AssemblyLoader
-
-<Router AppAssembly="@typeof(App).Assembly" AdditionalAssemblies="m_lazyLoadedAssemblies"
-    OnNavigateAsync="OnNavigateAsync">
+<Router AppAssembly="@typeof(App).Assembly">
     <Found Context="routeData">
         <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
         <FocusOnNavigate RouteData="@routeData" Selector="h1" />
@@ -16,26 +10,3 @@
         </LayoutView>
     </NotFound>
 </Router>
-
-@code
-{
-    private List<Assembly> m_lazyLoadedAssemblies = [];
-    private bool m_appNewsLoaded;
-
-    private async Task OnNavigateAsync(NavigationContext args)
-    {
-        try
-        {
-            if ((args.Path == "apps/news") && !m_appNewsLoaded)
-            {
-                var assemblies = await AssemblyLoader.LoadAssembliesAsync(["News.wasm"]);
-                m_lazyLoadedAssemblies.AddRange(assemblies);
-                m_appNewsLoaded = true;
-            }
-        }
-        catch (Exception ex)
-        {
-            Logger.LogError($"Error: {ex.Message}");
-        }
-    }
-}

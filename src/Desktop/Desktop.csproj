@@ -16,11 +16,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <BlazorWebAssemblyLazyLoad Include="News.wasm" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\News\News.csproj" />
     <ProjectReference Include="..\WUL\WUL.csproj" />
   </ItemGroup>
 

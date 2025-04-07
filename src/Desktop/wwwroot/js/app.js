@@ -23,3 +23,14 @@ function SessionLoadAndCleanItem(key) {
 window.onresize = () => {
     DotNet.invokeMethodAsync("Desktop", 'OnBrowserResize').then(data => data);
 }
+
+window.onmessage = async (evt) => {
+    var ret = await DotNet.invokeMethodAsync("Desktop", "OnMessage", JSON.stringify({
+        "origin": evt.origin,
+        "data": evt.data
+    }));
+
+    if (ret != null) {
+        evt.source.postMessage(ret, evt.origin);
+    }
+}
