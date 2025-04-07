@@ -29,7 +29,7 @@ jobs:
 
       - name: Build
         run: |
-          dotnet publish -c Release src/Desktop/Desktop.csproj
+          dotnet publish -c Release src/WebOS.csproj
 
       - name: Publish
         uses: Azure/static-web-apps-deploy@v1
@@ -37,10 +37,10 @@ jobs:
           azure_static_web_apps_api_token: ${{ secrets.WEBSITE_DEPLOY_KEY }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: src/Desktop/bin/Release/net9.0/publish/wwwroot/
+          app_location: src/bin/Release/net9.0/publish/wwwroot/
           skip_app_build: true
           skip_api_build: true
-          output_location: src/Desktop/bin/Release/net9.0/publish/wwwroot/
+          output_location: src/bin/Release/net9.0/publish/wwwroot/
   
   close_pull_request:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
