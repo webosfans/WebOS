@@ -1,0 +1,22 @@
+@page "/login/microsoft"
+@using WebOS.Pages.Login.Components
+@inject MicrosoftAuthenticationProvider MicrosoftAuthenticationProvider
+
+<LoginPanel AlwaysAnimation=true>
+    <div class="loader">Logging in...</div> 
+</LoginPanel>
+
+@code
+{
+    protected override async Task OnInitializedAsync()
+    {
+        var callbackUrl = Navigation.Uri;
+        // Remove token from address bar.
+        Navigation.NavigateTo("/login/microsoft");
+        var nextUrl = await MicrosoftAuthenticationProvider.LoginAsync(callbackUrl);
+        if (!string.IsNullOrEmpty(nextUrl))
+        {
+            Navigation.NavigateTo(nextUrl);
+        }
+    }
+}

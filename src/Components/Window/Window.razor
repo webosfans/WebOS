@@ -1,0 +1,167 @@
+@namespace WebOS.Components
+@inherits ComponentBase
+
+<div class="window" style="@MergedStyle" @onpointerdown="OnClick">
+    <div class="application-bar">
+        <div @ref="_dragbar" class="application-dragbar" @onpointerdown="OnDragStart" @onpointerup="OnDragStop" @onpointermove="OnDragMove">@Title</div>
+        <div class="application-buttons">
+            <div class="btn" style="--bgcolor: #ff5f56; --border-color: #e0443e;" @onclick="OnClose">
+                <svg width="7" height="7" fill="none" xmlns="http://www.w3.org/2000/svg"><path stroke="#000" stroke-width="1.2" stroke-linecap="round" d="M1.182 5.99L5.99 1.182m0 4.95L1.182 1.323"></path></svg>
+            </div>
+            <div class="btn" style="--bgcolor: #ffbd2e; --border-color: #dea123;">
+                <svg width="6" height="1" fill="none" xmlns="http://www.w3.org/2000/svg"><path stroke="#000" stroke-width="2" stroke-linecap="round" d="M.61.703h5.8"></path></svg>
+            </div>
+            <div class="btn" style="--bgcolor: #37c93f; --border-color: #1aab29;">
+                <svg viewBox="0 0 13 13" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="2"><path d="M4.871 3.553L9.37 8.098V3.553H4.871zm3.134 5.769L3.506 4.777v4.545h4.499z"></path><circle cx="6.438" cy="6.438" r="6.438" fill="none"></circle></svg>
+            </div>
+        </div>
+    </div>
+    <div class="application-client-area">
+        <iframe src="@AppRoutePath" />
+    </div>
+    <div class="application-borders" @onpointermove="OnBoderDragMove">
+        <div class="left" @ref="_leftBorder.Dom" @onpointerdown="e => OnBoderDragStart(e, _leftBorder)" @onpointerup="e => OnBoderDragStop(e, _leftBorder)" />
+        <div class="top" @ref="_topBorder.Dom" @onpointerdown="e => OnBoderDragStart(e, _topBorder)" @onpointerup="e => OnBoderDragStop(e, _topBorder)" />
+        <div class="right" @ref="_rightBorder.Dom" @onpointerdown="e => OnBoderDragStart(e, _rightBorder)" @onpointerup="e => OnBoderDragStop(e, _rightBorder)" />
+        <div class="bottom" @ref="_bottomBorder.Dom" @onpointerdown="e => OnBoderDragStart(e, _bottomBorder)" @onpointerup="e => OnBoderDragStop(e, _bottomBorder)" />
+        <div class="left-top" @ref="_leftTopBorder.Dom" @onpointerdown="e => OnBoderDragStart(e, _leftTopBorder)" @onpointerup="e => OnBoderDragStop(e, _leftTopBorder)" />
+        <div class="right-top" @ref="_rightTopBorder.Dom" @onpointerdown="e => OnBoderDragStart(e, _rightTopBorder)" @onpointerup="e => OnBoderDragStop(e, _rightTopBorder)" />
+        <div class="right-bottom" @ref="_rightBottomBorder.Dom" @onpointerdown="e => OnBoderDragStart(e, _rightBottomBorder)" @onpointerup="e => OnBoderDragStop(e, _rightBottomBorder)" />
+        <div class="left-bottom" @ref="_leftBottomBorder.Dom" @onpointerdown="e => OnBoderDragStart(e, _leftBottomBorder)" @onpointerup="e => OnBoderDragStop(e, _leftBottomBorder)" />
+    </div>
+</div>
+
+@code
+{
+    private class Border
+    {
+        public ElementReference Dom { get; set; }
+        public bool IsDragging { get; set; }
+    }
+
+    [Parameter]
+    public string? Title { get; set;}
+
+    [Parameter]
+    public int Left { get; set; }
+
+    [Parameter]
+    public int Top { get; set; }
+
+    [Parameter]
+    public int Width { get; set; }
+
+    [Parameter]
+    public int Height { get; set; }
+
+    [Parameter]
+    public int ZIndex { get; set; }
+
+    [Parameter]
+    public EventCallback OnFocus { get; set; }
+
+    [Parameter]
+    public EventCallback<(int Left, int Top, int Width, int Height)> OnMove { get; set; }
+    
+    [Parameter]
+    public EventCallback OnClose { get; set; }
+
+    [Parameter]
+    public string? AppRoutePath { get; set; }
+
+    private string MergedStyle =>
+        new StyleBuilder()
+            .AddStyle("left", $"{Left}px")
+            .AddStyle("top", $"{Top}px")
+            .AddStyle("width", $"{Width}px")
+            .AddStyle("height", $"{Height}px")
+            .AddStyle("z-index", ZIndex.ToString())
+            .AddStyle(Style)
+            .Build();
+    
+    private ElementReference _dragbar;
+    
+    private bool _dragStart;
+
+    private async void OnClick(PointerEventArgs e)
+        => await OnFocus.InvokeAsync();
+
+    private async void OnDragStart(PointerEventArgs e)
+    {
+        await JS.InvokeVoidAsync("DomInvoke", _dragbar, "setPointerCapture", e.PointerId);
+        _dragStart = true;
+    }
+
+    private async void OnDragStop(PointerEventArgs e)
+    {
+        await JS.InvokeVoidAsync("DomInvoke", _dragbar, "releasePointerCapture", e.PointerId);
+        _dragStart = false;
+    }
+
+    private void OnDragMove(PointerEventArgs e)
+    {
+        if (_dragStart)
+        {
+            OnMove.InvokeAsync((Left + (int)e.MovementX, Top + (int)e.MovementY, Width, Height));
+        }
+    }
+
+    #region Borders
+    private Border _leftBorder = new Border();
+    private Border _topBorder = new Border();
+    private Border _rightBorder = new Border();
+    private Border _bottomBorder = new Border();
+    private Border _leftTopBorder = new Border();
+    private Border _rightTopBorder = new Border();
+    private Border _rightBottomBorder = new Border();
+    private Border _leftBottomBorder = new Border();
+
+    private void OnBoderDragStart(PointerEventArgs e, Border border)
+    {
+        border.IsDragging = true;
+        JS.InvokeVoidAsync("DomInvoke", border.Dom, "setPointerCapture", e.PointerId);
+    }
+
+    private void OnBoderDragStop(PointerEventArgs e, Border border)
+    {
+        border.IsDragging = false;
+        JS.InvokeVoidAsync("DomInvoke", border.Dom, "releasePointerCapture", e.PointerId);
+    }
+
+    private void OnBoderDragMove(PointerEventArgs e)
+    {
+        if (_leftBorder.IsDragging)
+        {
+            OnMove.InvokeAsync((Left + (int)e.MovementX, Top, Width - (int)e.MovementX, Height));
+        }
+        else if (_topBorder.IsDragging)
+        {
+            OnMove.InvokeAsync((Left, Top + (int)e.MovementY, Width, Height - (int)e.MovementY));
+        }
+        else if (_rightBorder.IsDragging)
+        {
+            OnMove.InvokeAsync((Left, Top, Width + (int)e.MovementX, Height));
+        }
+        else if (_bottomBorder.IsDragging)
+        {
+            OnMove.InvokeAsync((Left, Top, Width, Height + (int)e.MovementY));
+        }
+        else if (_leftTopBorder.IsDragging)
+        {
+            OnMove.InvokeAsync((Left + (int)e.MovementX, Top + (int)e.MovementY, Width - (int)e.MovementX, Height - (int)e.MovementY));
+        }
+        else if (_rightTopBorder.IsDragging)
+        {
+            OnMove.InvokeAsync((Left, Top + (int)e.MovementY, Width + (int)e.MovementX, Height - (int)e.MovementY));
+        }
+        else if (_rightBottomBorder.IsDragging)
+        {
+            OnMove.InvokeAsync((Left, Top, Width + (int)e.MovementX, Height + (int)e.MovementY));
+        }
+        else if (_leftBottomBorder.IsDragging)
+        {
+            OnMove.InvokeAsync((Left +  (int)e.MovementX, Top, Width - (int)e.MovementX, Height + (int)e.MovementY));
+        }
+    }
+    #endregion
+}
