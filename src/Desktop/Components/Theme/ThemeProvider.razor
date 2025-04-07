@@ -1,0 +1,22 @@
+@namespace Desktop.Components
+
+@((MarkupString)BuildTheme())
+
+@code
+{
+    [Parameter]
+    public Theme Theme { get; set; }
+
+    private string BuildTheme()
+    {
+        return new StringBuilder()
+            .AppendLine("<style>")
+            .AppendLine(":root {")
+            .AppendLine("--theme-color: rgb(231, 233, 234);")
+            .AppendLine("--theme-background: #1b1b1d;")
+            .AppendLine("--theme-scrollbar: rgb(62, 65, 68) var(--theme-background)")
+            .AppendLine("}")
+            .AppendLine("</style>")
+            .ToString();
+    }
+}
