@@ -1,6 +1,7 @@
 @page "/login/microsoft"
 @using WebOS.Pages.Login.Components
 @inject MicrosoftAuthenticationProvider MicrosoftAuthenticationProvider
+@inject ILogger<LoginMicrosoftCallback> Logger
 
 <LoginPanel AlwaysAnimation=true>
     <div class="loader">Logging in...</div> 
@@ -11,12 +12,20 @@
     protected override async Task OnInitializedAsync()
     {
         var callbackUrl = Navigation.Uri;
+
         // Remove token from address bar.
         Navigation.NavigateTo("/login/microsoft");
-        var nextUrl = await MicrosoftAuthenticationProvider.LoginAsync(callbackUrl);
-        if (!string.IsNullOrEmpty(nextUrl))
+
+        // Login, if any failure, return the login page again.
+        try
         {
-            Navigation.NavigateTo(nextUrl);
+            await MicrosoftAuthenticationProvider.LoginAsync(callbackUrl);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, ex.Message);
+
+            Navigation.NavigateTo("/login");
         }
     }
 }
