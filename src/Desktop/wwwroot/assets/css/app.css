@@ -8,6 +8,8 @@ html, body, #app {
     bottom: 0;
     overflow: hidden;
     font-family: -apple-system, BlinkMacSystemFont, Inter, "Helvetica Neue", Helvetica, Arial, sans-serif;
+    color: var(--theme-color);
+    background-color: var(--theme-background);
 }
 
 * {
